@@ -1,10 +1,24 @@
 <style>
-  
+.container {
+  background: #738393;
+}
+.top-bar {
+  height: 50px;
+  width: 100%;
+  background: red;
+  position: fixed;
+  top:0;
+  left: 0;
+}
 </style>
 <template>
   <div class="container">
-    <wc-side-menu>
-    </wc-side-menu>
+      <div class="top-bar" @click="showMe"></div>
+      <h1 v-for="i in 100">{{i}} Hello World</h1>
+
+      <wc-side-menu :show="show">
+        老子是侧边栏
+      </wc-side-menu>
   </div>
 </template>
 <script>
@@ -13,6 +27,17 @@
     name: 'App',
     components: {
       wcSideMenu
+    },
+    data () {
+      return {
+        show: true
+      }
+    },
+    methods: {
+      showMe () {
+        this.show = !this.show;
+      }
     }
+
   }
 </script>
