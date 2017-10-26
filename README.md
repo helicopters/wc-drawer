@@ -23,3 +23,12 @@ topbar 不能是 fixed, 否则没办法移动, 或者说, 这个玩意还的额�
 
 
 linkageElements: [], 我觉得比 all 好. 
+
+fixed 元素始终会在顶层, 即使其他元素的 z-index 比它高. 比它高也没有用. 
+
+这个就导致了内容动, drawer 不动的情况下, 布局不能使用 fixed, 只能用 absolute 模拟
+
+  
+z-index只能在position属性值为relative或absolute或fixed的元素上有效。  
+
+可以通过 fixed 元素来遮住微信的背景, 还可以做一个固定的背景. 
