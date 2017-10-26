@@ -1,10 +1,7 @@
 <style lang="less">
-.container {
-   background: white;
-   .content {
-    background: white;
-   }
-  /*background: #738393;*/
+
+.content {
+  background: white;
 }
 .top-bar {
   height: 50px;
@@ -13,7 +10,7 @@
   position: fixed;
   top:0;
   left: 0;
-  z-index: 10;
+  // z-index: 10;
 
 }
 </style>
@@ -27,7 +24,7 @@
       </div>
       
 
-      <wc-side-menu content=".content" bar=".top-bar"  :move="['.content', '.top-bar','xx']" ref="side">
+      <wc-side-menu :move="['.content', '.top-bar','xx']" ref="side">
         <h1 v-for="i in 50">我是侧壁难</h1>
         <!-- <h1 @click="fn">你好</h1> -->
       </wc-side-menu>
@@ -52,14 +49,10 @@
         // this.show = !this.show;
 
         this.$refs.side.show();
+        // setTimeout(()=>{
+        //   this.$refs.side.hide();
+        // },2000);
         // console.log('当前的状态', this.show);
-      },
-      end () {
-        // con
-        this.show = false;
-      },
-      fn () {
-        alert(1)
       }
     }
 

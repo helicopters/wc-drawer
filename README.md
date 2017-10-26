@@ -86,23 +86,23 @@ z-index只能在position属性值为relative或absolute或fixed的元素上有�
 2. 再次点击, 依旧可以唤起 侧边栏
 
 
+移动端基本上可以实现完整解决方案了
+
+支持侧边栏滑动, 并不好做. 
 
 
 
 
+移动端阻止元素滚动. 
 
 
 
+	/* 如果放在 handler 中, 每次都相当于是新建, 导致 add 和 remove 中的 handler 实际上不一样*/
+	let handler =  e => e.preventDefault();
 
 
 
-
-
-
-
-
-
-
+移动端的遮罩层, 这些玩意, 都他吗的什么玩意啊. 我草草草. 
 
 
 
