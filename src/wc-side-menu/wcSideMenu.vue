@@ -30,7 +30,7 @@
 			/* 移动模式 */
 			mode: {
 				default () {
-					return ['content'];
+					return ['content','drawer'];
 				}
 			},
 			duration: {
@@ -100,12 +100,18 @@
 				}
 				/* 此时主内容还是可以滚动, 这样不行, 这个时候我们不能让页面滚动*/
 				/* 支持侧边栏滑动 和所有联动的元素滑动 */
-				this.linkageElements.forEach(el => {
-					/*支持点击内容区域隐藏 drawer*/
-					el.addEventListener('click', this.hide, false);
-					/*阻止侧边栏出来的时候内容区域可以滚动*/
-					el.addEventListener('touchmove', this.handler, false);
-				});
+				setTimeout(()=>{
+
+					this.linkageElements.forEach(el => {
+						/*支持点击内容区域隐藏 drawer*/
+						el.addEventListener('click', this.hide, false);
+						/*阻止侧边栏出来的时候内容区域可以滚动*/
+						el.addEventListener('touchmove', this.handler, false);
+					});
+
+
+				}, 10);
+
 			},
 
 			hide () {

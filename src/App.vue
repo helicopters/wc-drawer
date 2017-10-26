@@ -1,33 +1,50 @@
 <style lang="less">
-
 .content {
   background: white;
+  text-align: center;
 }
 .top-bar {
   height: 50px;
   width: 100%;
-  background: red;
+  background: #7e57c2;
   position: fixed;
   top:0;
   left: 0;
-  // z-index: 10;
-
+  img {
+    position: relative;
+    top: 10px;
+    left: 20px;
+  }
 }
+.drawer {
+  width: 220px;
+  background: #873;
+  padding: 10px;
+  color: white;
+}
+
+
 </style>
 <template>
   <div class="container">
+
+      <wc-side-menu :move="['.content', '.top-bar','xx']" ref="side" class="drawer">
+         <h1>主要标题</h1>
+         <p v-for="i in 50">标题 {{i + 1}}</p>
+      </wc-side-menu>
+
       <div class="top-bar" >
-        <button @click.stop="showMe">你好</button>
+        <img src="./icon.png" alt="" @click="showMe">
       </div>
+
+
+
       <div class="content">
-        <h1 v-for="i in 100">{{i}} Hello World</h1>
+         <h1 v-for="i in 100">{{i}} Hello World</h1>
       </div>
       
 
-      <wc-side-menu :move="['.content', '.top-bar','xx']" ref="side">
-        <h1 v-for="i in 50">我是侧壁难</h1>
-        <!-- <h1 @click="fn">你好</h1> -->
-      </wc-side-menu>
+
   </div>
 </template>
 <script>
@@ -44,15 +61,7 @@
     },
     methods: {
       showMe () {
-        // console.log(this.show)
-        // this.show = !this.show;
-        // this.show = !this.show;
-
         this.$refs.side.show();
-        // setTimeout(()=>{
-        //   this.$refs.side.hide();
-        // },2000);
-        // console.log('当前的状态', this.show);
       }
     }
 
