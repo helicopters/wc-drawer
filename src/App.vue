@@ -1,6 +1,6 @@
 <style>
 .container {
-  background: #738393;
+  /*background: #738393;*/
 }
 .top-bar {
   height: 50px;
@@ -20,8 +20,9 @@
       </div>
       
 
-      <wc-side-menu :show="show" content=".content" bar=".top-bar">
-        老子是侧边栏
+      <wc-side-menu v-model="show" content=".content" bar=".top-bar"  :move="['.content', '.top-bar','xx']">
+        老子是侧边栏边栏边栏边栏
+        <!-- <h1 @click="fn">你好</h1> -->
       </wc-side-menu>
   </div>
 </template>
@@ -39,7 +40,19 @@
     },
     methods: {
       showMe () {
+        // console.log(this.show)
+        // this.show = !this.show;
         this.show = !this.show;
+
+
+        console.log('当前的状态', this.show);
+      },
+      end () {
+        // con
+        this.show = false;
+      },
+      fn () {
+        alert(1)
       }
     }
 
