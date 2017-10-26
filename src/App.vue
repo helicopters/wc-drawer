@@ -19,14 +19,16 @@
 </style>
 <template>
   <div class="container">
-      <div class="top-bar" @click="showMe">1223</div>
+      <div class="top-bar" >
+        <button @click.stop="showMe">你好</button>
+      </div>
       <div class="content">
         <h1 v-for="i in 100">{{i}} Hello World</h1>
       </div>
       
 
       <wc-side-menu content=".content" bar=".top-bar"  :move="['.content', '.top-bar','xx']" ref="side">
-        老子是侧边栏边栏边栏边栏
+        <h1 v-for="i in 50">我是侧壁难</h1>
         <!-- <h1 @click="fn">你好</h1> -->
       </wc-side-menu>
   </div>

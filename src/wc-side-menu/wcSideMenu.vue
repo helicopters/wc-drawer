@@ -1,16 +1,33 @@
 <style lang="less">
+// body {
+// 	ov
+// }
 .wc-side-menu-container {
 	position: fixed;
 	top:0;
 	left: 0;
-	height: 100%;
+	// height: 100%;
+	// right: 0;
+	bottom: 0;	
 	background: yellow;
 	
 	transform: translate(-100%);
 	z-index: 100;
+	overflow: scroll;
+	// transition:
+	// transitionDura
 	
 }
-
+.test {
+	position: absolute;
+	top:0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background: blue;
+	pointer-events: none;
+	opacity: 0.2;
+}
 </style>
 <template>
 
@@ -46,7 +63,7 @@ menu 不动, content 动 // 这个不管.
 
 			mode: {
 				default () {
-					return ['content'];
+					return ['menu'];
 				}
 			}
 		},
@@ -87,6 +104,14 @@ menu 不动, content 动 // 这个不管.
 
 		// },
 		methods: {
+			transitionend () {
+				console.log('transitionDuration')
+				this.$refs.drawer.style.position = 'absolute';
+				// this.$refs.drawer.style.top = document.body.scrollTop;
+								this.$refs.drawer.style.top = document.documentElement.scrollTop + 'px'
+
+
+			},
 			/* 获取所有的需要联动的页面上的元素 */
 			getLinkageElements () {
 				this.linkageElements = this.move.map((selector) => {
@@ -97,13 +122,25 @@ menu 不动, content 动 // 这个不管.
 				})
 			},
 			show () {
+				console.log('hello?')
+				// this.$refs.drawer.addEventListener('transitionend', ()=>{
+				// 	console.log('xxxx')
+				// },false)
+
+
+
+				document.body.style.overflow = 'hidden'
+
 
 
 			this.getLinkageElements();
 			this.drawerWidth = this.$refs.drawer.clientWidth;
 
+
+			console.log(this.drawerWidth)
+
 			if (this.mode.indexOf('menu') == -1 && this.mode.indexOf('content') > -1) {
-				// alert('relayout')
+				alert('relayout')
 
 				// this.$refs.drawer.style.position = 'absolute';
 				// this.$refs.drawer.style.height = '100%';
@@ -118,7 +155,7 @@ menu 不动, content 动 // 这个不管.
 
 				this.linkageElements.forEach(el=>{
 					el.style.zIndex = 101;
-					console.log(getComputedStyle(el).position)
+					// console.log(getComputedStyle(el).position)
 					if (getComputedStyle(el).position == 'static') {
 						el.style.position = 'relative'
 					} else if (getComputedStyle(el).position == 'fixed'){
@@ -137,11 +174,15 @@ menu 不动, content 动 // 这个不管.
 
 
 
-				this.$refs.drawer.style.top = document.body.scrollTop;
+/*
+在第二次点击, 和第一次之后, 
+都执行到这里了, 但是没有触发. 
 
-
+*/
 				if (this.mode.indexOf('menu') > -1) {
 					console.log('fdffddf')
+
+					// this.$refs.drawer.style.left = '200px'
 					/* 首先是侧边栏肯定要自己移动一下*/
 					this.transitionDuration(200, this.$refs.drawer);
 					this.translateX(0, this.$refs.drawer);
@@ -157,10 +198,32 @@ menu 不动, content 动 // 这个不管.
 				}
 
 				/* 此时主内容还是可以滚动, 这样不行, 这个时候我们不能让页面滚动*/
-				document.addEventListener('touchmove', handler, false);
+				// document.addEventListener('touchmove', handler, false);
+
+				// setTimeout(()=>{
+				// console.log('transitionDuration')
+				// this.$refs.drawer.style.position = 'absolute';
+				// // this.$refs.drawer.style.top = document.body.scrollTop;
+				// 				this.$refs.drawer.style.top = document.documentElement.scrollTop + 'px'
+
+				// },2000)
 
 
+// 				var div = document.createElement('div');
+// 				div.className = 'test'
+// 				div.style.zIndex = 1000;
 
+// div.style.top = document.documentElement.scrollTop + 'px'
+
+
+// 				this.translateX(this.drawerWidth, div);
+
+// 				document.body.append(div);
+
+
+// document.querySelector('.test').addEventListener('touchmove', (e)=>{
+// 	e.preventDefault();
+// },false)
 
 
 
@@ -171,24 +234,64 @@ menu 不动, content 动 // 这个不管.
 				let recover = ()=> {
 
 
-					if (this.mode.indexOf('menu') > -1) {
-					this.transitionDuration(100, this.$refs.drawer);
-					this.translateX(-this.drawerWidth, this.$refs.drawer);
+				this.linkageElements.forEach(el => {
+					el.removeEventListener('click', recover, false);
+					// el.addEventListener('touchstart', s, false);
+					// el.addEventListener('touchmove', m, false);
+					// el.addEventListener('touchend', e, false);
+				});
 
+
+
+
+
+					document.body.style.overflow = 'auto'
+
+
+					if (this.mode.indexOf('menu') > -1) {
+						this.transitionDuration(100, this.$refs.drawer);
+						this.translateX(-this.drawerWidth, this.$refs.drawer);
+
+						setTimeout(()=>{
+							this.transitionDuration(0, this.$refs.drawer);
+						}, false);
 
 					}
 
 					if (this.mode.indexOf('content') > -1) {
-					this.linkageElements.forEach(el => {
-						this.transitionDuration(100, el);
-						this.translateX(0, el);
-					});
+						this.linkageElements.forEach(el => {
+							this.transitionDuration(100, el);
+							this.translateX(0, el);
+						});
+
+					}
+
+					if (this.mode.indexOf('menu') == -1 && this.mode.indexOf('content') > -1) {
+
+						// this.$refs.drawer.style.zIndex = 50;
+						// this.$refs.
+						this.translateX(-this.drawerWidth, this.$refs.drawer);
+
+						// this.linkageElements.forEach(el=>{
+						// 	if (getComputedStyle(el).position == 'fixed'){
+						// 		// el.style.position = 
+						// 		el.style.zIndex = 90;
+						// 	}
+						// 	// if ()
+							
+						// })
+
 
 					}
 
 
 
-
+				// this.linkageElements.forEach(el => {
+				// 	el.removeEventListener('click', recover, false);
+				// 	// el.addEventListener('touchstart', s, false);
+				// 	// el.addEventListener('touchmove', m, false);
+				// 	// el.addEventListener('touchend', e, false);
+				// });
 
 
 
@@ -198,18 +301,21 @@ menu 不动, content 动 // 这个不管.
 					/*更新状态*/
 					// this.$emit('input', false);
 					/*移除绑定的事件*/
-					this.$refs.drawer.removeEventListener('touchstart', s, false);
-					this.$refs.drawer.removeEventListener('touchmove', m, false);
-					this.$refs.drawer.removeEventListener('touchend', e, false);
-					this.linkageElements.forEach(el => {
-						el.removeEventListener('touchstart', s, false);
-						el.removeEventListener('touchmove', m, false);
-						el.removeEventListener('touchend', e, false);
-					});
+					// this.$refs.drawer.removeEventListener('touchstart', s, false);
+					// this.$refs.drawer.removeEventListener('touchmove', m, false);
+					// this.$refs.drawer.removeEventListener('touchend', e, false);
 
 
 
-				document.removeEventListener('touchmove', handler, false);
+					// this.linkageElements.forEach(el => {
+					// 	el.removeEventListener('touchstart', s, false);
+					// 	el.removeEventListener('touchmove', m, false);
+					// 	el.removeEventListener('touchend', e, false);
+					// });
+
+
+
+				// document.removeEventListener('touchmove', handler, false);
 				// this.$emit('input', false);
 
 
@@ -218,6 +324,7 @@ menu 不动, content 动 // 这个不管.
 				}
 				/*toushstart handler*/
 				let s = (e) => {
+					// e.stopProgapation();
 					this.transitionDuration(0, this.$refs.drawer);
 					this.linkageElements.forEach(el => {
 						this.transitionDuration(0, el);
@@ -229,6 +336,7 @@ menu 不动, content 动 // 这个不管.
 				}
 				/*toushmove handler*/
 				let m = (e) =>{
+					// e.stopProgapation();
 					let active = e.touches.length - 1;
 					this.pos.moveX = e.touches[active].clientX;
 					this.pos.distance = this.pos.moveX - this.pos.startX;
@@ -257,18 +365,20 @@ menu 不动, content 动 // 这个不管.
 
 				}
 				let e = (e) =>{
+					// e.stopProgapation();
 					let curId = toArray(e.changedTouches)[0].identifier;
 					this.pos.endX = e.changedTouches[0].clientX;
 					this.pos.distance = this.pos.endX - this.pos.startX;
 					recover();
 				}
-				this.$refs.drawer.addEventListener('touchstart', s, false);
-				this.$refs.drawer.addEventListener('touchmove', m, false);
-				this.$refs.drawer.addEventListener('touchend', e, false);
+				// this.$refs.drawer.addEventListener('touchstart', s, false);
+				// this.$refs.drawer.addEventListener('touchmove', m, false);
+				// this.$refs.drawer.addEventListener('touchend', e, false);
 				this.linkageElements.forEach(el => {
-					el.addEventListener('touchstart', s, false);
-					el.addEventListener('touchmove', m, false);
-					el.addEventListener('touchend', e, false);
+					el.addEventListener('click', recover, false);
+					// el.addEventListener('touchstart', s, false);
+					// el.addEventListener('touchmove', m, false);
+					// el.addEventListener('touchend', e, false);
 				});
 
 
