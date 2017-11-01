@@ -3,10 +3,8 @@
 	/* 这样保证不随着主体内容滚动而滚动 */
 	position: fixed;
 	top: 0;
-	left: 0;
 	bottom: 0;
 	/* 这样让 drawer 在刚开始的时候不会显示*/
-	transform: translateX(-100%);
 	/* 这样让 drawer 可以滚动 */
 	overflow: scroll;
 	-webkit-overflow-scrolling: touch;
@@ -40,12 +38,30 @@
 			/* 渐变出来的时间 */
 			duration: {
 				default: 300
+			},
+			/* 从哪个方向出来 */
+			from: {
+				default: 'left'
+			},
+			value: {
+				default: false
+			}
+		},
+		watch: {
+			value (n) {
+				console.log(n)
+				if (n) {
+					this.show();
+				} else {
+					this.hide();
+				}
 			}
 		},
 		data () {
 			return {
 				linkageElements: [],
-				drawerWidth: 0
+				drawerWidth: 0,
+				overlay: null
 			}
 		},
 		mounted () {
@@ -56,28 +72,30 @@
 			*/
 			this.getLinkageElements();
 			this.drawerWidth = this.$refs.drawer.clientWidth;
-			/* content 动*/
+			/* 判断 content 动*/
 			if (this.mode.indexOf('content') > -1) {
 				CONTNET_MOVE = true;
 			}
-			/* drawer 动*/
+			/* 判断方向 */
+			if (this.from === 'left') {
+				this.$refs.drawer.style.left = 0;
+				this.translateX(-this.drawerWidth, this.$refs.drawer);
+			} else {
+				this.$refs.drawer.style.right = 0;
+				this.translateX(this.drawerWidth, this.$refs.drawer);
+			}
+			/* 判断 drawer 动*/
 			if (this.mode.indexOf('drawer') > -1) {
 				DRAWER_MOVE = true;
 			} else {
 				this.translateX(0, this.$refs.drawer);
 				this.$refs.drawer.style.zIndex = -1;
 			}
+			this.addOverlay();
+			this.overlay = document.querySelector('.overlay');
 		},
 		methods: {
-			/* 获取在侧边栏出来的时候, 所有需要跟着移动的页面元素 */
-			getLinkageElements () {
-				this.linkageElements = this.move.map((selector) => {
-					return document.querySelector(selector);
-				}).filter(el=>{
-					/*过滤掉所有的无效选择器*/
-					return el !== null;
-				})
-			},
+
 			/* 开始唤起 drawer */
 			show () {
 				/*
@@ -98,15 +116,21 @@
 				/* drawewr 不动, content 动 */
 				if (!DRAWER_MOVE && CONTNET_MOVE) {
 					this.moveContent();
+					let handler = ()=>{
+						this.$refs.drawer.style.zIndex = 1;
+						this.linkageElements[0].removeEventListener('transitionend', handler, false);
+					}
+					this.linkageElements[0].addEventListener('transitionend', handler, false);
 				}
 				/* 
 					其他方面 
 					1 drawer 出现的时候, content 不允许滚动
 					2 点击剩余的内容区域, 可以关闭 drawer
+					3 为 body 加一层 overlay, 要不然主内容里面的链接是可以点击的. 
 				*/
+				this.overlay.style.display = 'block';
 				/* pc 上生效 */
 				document.body.style.overflow = 'hidden';
-
 				/* 
 					点击剩余的内容区域, 可以关闭 drawer 
 					这个转交给 transition 结束来做. 
@@ -114,12 +138,10 @@
 					transitionend 不会触发, 导致问题. 
 				*/
 				setTimeout(()=>{
-					this.linkageElements.forEach(el => {
-						el.addEventListener('click', this.hide, false);
-					});						
-				},10)
+					this.overlay.addEventListener('click', this.hide, false);
+				},10);
+				this.$emit('input', true)
 			},
-
 			hide () {
 				/* drawer 动, cotnent 不动 */
 				if (DRAWER_MOVE && !CONTNET_MOVE) {
@@ -132,54 +154,96 @@
 				}
 				/* drawewr 不动, content 动 */
 				if (!DRAWER_MOVE && CONTNET_MOVE) {
+					this.$refs.drawer.style.zIndex = -1;
 					this.recoverContent();
 				}	
 				/* 其他操作
-					恢复
+				   允许滚动
+				   解绑点击事件
 				*/
 				document.body.style.overflow = 'auto';
-				this.linkageElements.forEach(el => {
-					el.removeEventListener('click', this.hide, false);
-				});	
+				this.overlay.removeEventListener('click', this.hide, false);
+				this.$emit('input', false);
+				this.overlay.style.display = 'none';
 			},
-
 			/* 显示 drawer */
 			moveDrawer () {
 				this.transitionDuration(this.duration, this.$refs.drawer);
 				this.translateX(0, this.$refs.drawer);					
 			},
-			moveContent () {
-				this.linkageElements.forEach(el=>{
-					/* fixed bug: fixed 元素在使用 transform 的时候导致不显示, 需要设置一个
-					   z-index 来控制 
-					*/
-					el.style.zIndex = 1;
-					this.transitionDuration(this.duration, el);
-					this.translateX(this.drawerWidth, el);
-				})
-			},
 			/* 隐藏 drawer */
 			recoverDrawer () {
 				this.transitionDuration(this.duration, this.$refs.drawer);
-				this.translateX(-this.drawerWidth, this.$refs.drawer);				
+				if (this.from == 'left') {
+					this.translateX(-this.drawerWidth, this.$refs.drawer);	
+				}
+				if (this.from == 'right') {
+					this.translateX(this.drawerWidth, this.$refs.drawer);
+				}
+			},
+			moveContent () {
+				this.linkageElements.forEach(el=>{
+					/*  fixed bug: 
+						fixed 元素在使用 transform 的时候导致不显示, 需要设置一个z-index 来控制
+						需要为 fixed 元素指定一个 zIndex 
+					*/
+					let position = getComputedStyle(el).position;
+					if (position === 'fixed') {
+						el.zIndex = getComputedStyle(el).zIndex;
+						el.style.zIndex = 9999;
+					}
+					this.transitionDuration(this.duration, el);
+					if (this.from == 'left') {
+						this.translateX(this.drawerWidth, el);
+						this.translateX(this.drawerWidth, this.overlay);
+					}
+					if (this.from == 'right') {
+						this.translateX(-this.drawerWidth, el);
+						this.translateX(-this.drawerWidth, this.overlay);
+					}
+				})
 			},
 			recoverContent () {
-				console.log('shiwo ')
 				this.linkageElements.forEach(el => {
+					/* 恢复之前的样子 */
 					this.transitionDuration(this.duration, el);
 					this.translateX(0, el);
+					this.translateX(0, this.overlay);
+					/* 这个解决一个 bug: 如果只有 content 动的话, 在恢复之后, fixed 元素的 fixed 失效*/
+					el.style.transform = null;
 				});					
 			},
-
 			translateX (value,el) {
-				el.style.transform = 'translate3d(' + value + 'px, 0, 0)';
+				el.style.transform = 'translateX(' + value + 'px)';
 			},
 			transitionDuration (ms,el) {
 				el.style.transitionDuration = ms + 'ms';
 			},
-			handler (e) {
-				e.preventDefault();
+			/* 添加遮罩层 */
+			addOverlay () {
+				let div = document.createElement('div');
+				div.style.position = 'absolute';
+				div.style.zIndex = 8888;
+				div.style.left = 0;
+				div.style.top = 0;
+				div.style.width = '100%';
+				div.style.height = document.body.clientHeight + 'px'
+				div.style.opacity = 0;
+				div.className = 'overlay'
+				document.body.appendChild(div);	
+				div.style.display = 'none';
+			},
+
+			/* 获取在侧边栏出来的时候, 所有需要跟着移动的页面元素 */
+			getLinkageElements () {
+				this.linkageElements = this.move.map((selector) => {
+					return document.querySelector(selector);
+				}).filter(el=>{
+					/*过滤掉所有的无效选择器*/
+					return el !== null;
+				})
 			}
+
 		}
 	}
 </script>
