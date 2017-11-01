@@ -28,18 +28,18 @@
 <template>
   <div class="container">
 
-      <wc-side-menu :move="['.content', '.top-bar','xx']" ref="side" class="drawer">
+      <wc-side-menu ref="side" class="drawer" :move="['.top-bar', '.content']">
          <h1>主要标题</h1>
          <p v-for="i in 50">标题 {{i + 1}}</p>
       </wc-side-menu>
 
-      <div class="top-bar" >
+      <div class="top-bar" ref="topbar">
         <img src="./icon.png" alt="" @click="showMe">
       </div>
 
 
 
-      <div class="content">
+      <div class="content" ref="content">
          <h1 v-for="i in 100">{{i}} Hello World</h1>
       </div>
       
@@ -62,6 +62,7 @@
     methods: {
       showMe () {
         this.$refs.side.show();
+        // this.
       }
     }
 

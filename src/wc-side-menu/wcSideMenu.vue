@@ -1,17 +1,21 @@
 <style lang="less" scoped>
-.wc-side-menu-container {
+.wc-drawer-container {
+	/* 这样保证不随着主体内容滚动而滚动 */
 	position: fixed;
 	top: 0;
 	left: 0;
 	bottom: 0;
-	transform: translate(-100%);
+	/* 这样让 drawer 在刚开始的时候不会显示*/
+	transform: translateX(-100%);
+	/* 这样让 drawer 可以滚动 */
 	overflow: scroll;
 	-webkit-overflow-scrolling: touch;
-	z-index: 9;
+	/* 这样保证层级最高, 不会被页面上的其他元素覆盖*/
+	z-index: 10000;
 }
 </style>
 <template>
-	<div class="wc-side-menu-container" ref="drawer">
+	<div class="wc-drawer-container" ref="drawer">
 		<slot/>
 	</div>
 </template>
@@ -19,7 +23,7 @@
 	let DRAWER_MOVE = false;
 	let CONTNET_MOVE = false;
 	export default {
-		name: 'wcSideMenu',
+		name: 'wcDrawer',
 		props: {
 			/* 需要移动的元素列表 */
 			move: {
@@ -30,9 +34,10 @@
 			/* 移动模式 */
 			mode: {
 				default () {
-					return ['content','drawer'];
+					return ['content'];
 				}
 			},
+			/* 渐变出来的时间 */
 			duration: {
 				default: 300
 			}
@@ -44,13 +49,23 @@
 			}
 		},
 		mounted () {
+			/* 
+				先找到所有的需要联动的元素
+				再拿到 drawer 的宽度, 以确定 content 和 drawer 的移动宽度.
+				然后确定移动的模式. 
+			*/
 			this.getLinkageElements();
-			this.drawerWidth = this.$refs.drawer.clientWidth;	
+			this.drawerWidth = this.$refs.drawer.clientWidth;
+			/* content 动*/
 			if (this.mode.indexOf('content') > -1) {
 				CONTNET_MOVE = true;
 			}
+			/* drawer 动*/
 			if (this.mode.indexOf('drawer') > -1) {
 				DRAWER_MOVE = true;
+			} else {
+				this.translateX(0, this.$refs.drawer);
+				this.$refs.drawer.style.zIndex = -1;
 			}
 		},
 		methods: {
@@ -63,85 +78,99 @@
 					return el !== null;
 				})
 			},
-			/* 显示侧边栏 */
+			/* 开始唤起 drawer */
 			show () {
 				/*
-					根据不同的移动方式, 需要有不同的处理方法.
-					drawer 主动出来 
-					content 主动出来
+					区分不同的模式
+					drawer 动, cotnent 不动
+					drawer 动, cotnent 动
+					drawewr 不动, content 动
 				*/
-				this.$refs.drawer.style.display = 'block';
-
-				if (DRAWER_MOVE) {
-					/* 仅仅抽屉动 */
-					this.transitionDuration(this.duration, this.$refs.drawer);
-					this.translateX(0, this.$refs.drawer);
-					/* 内容元素跟着移动 */
-					if (CONTNET_MOVE) {
-						this.linkageElements.forEach(el => {
-							el.style.zIndex = 8;
-							this.transitionDuration(this.duration, el);
-							this.translateX(this.drawerWidth, el);
-						});						
-					}
-				} else if (CONTNET_MOVE) {
-
-					this.translateX(0, this.$refs.drawer);
-					this.linkageElements.forEach(el=>{
-						el.style.zIndex = 10;
-						if (getComputedStyle(el).position == 'static') {
-							el.style.position = 'relative'
-						} else if (getComputedStyle(el).position == 'fixed'){
-							el.style.zIndex = 11;
-						}
-							this.transitionDuration(this.duration, el);
-							this.translateX(this.drawerWidth, el);
-					})
+				/* drawer 动, cotnent 不动 */
+				if (DRAWER_MOVE && !CONTNET_MOVE) {
+					this.moveDrawer();			
 				}
-				/* 此时主内容还是可以滚动, 这样不行, 这个时候我们不能让页面滚动*/
-				/* 支持侧边栏滑动 和所有联动的元素滑动 */
+				/* drawer 动, cotnent 动 */
+				if (DRAWER_MOVE && CONTNET_MOVE) {
+					this.moveDrawer();
+					this.moveContent();
+				}
+				/* drawewr 不动, content 动 */
+				if (!DRAWER_MOVE && CONTNET_MOVE) {
+					this.moveContent();
+				}
+				/* 
+					其他方面 
+					1 drawer 出现的时候, content 不允许滚动
+					2 点击剩余的内容区域, 可以关闭 drawer
+				*/
+				/* pc 上生效 */
+				document.body.style.overflow = 'hidden';
+
+				/* 
+					点击剩余的内容区域, 可以关闭 drawer 
+					这个转交给 transition 结束来做. 
+					不能转给 transitionend 来做, 因为drawer 不动的时候, 
+					transitionend 不会触发, 导致问题. 
+				*/
 				setTimeout(()=>{
-
 					this.linkageElements.forEach(el => {
-						/*支持点击内容区域隐藏 drawer*/
 						el.addEventListener('click', this.hide, false);
-						/*阻止侧边栏出来的时候内容区域可以滚动*/
-						el.addEventListener('touchmove', this.handler, false);
-					});
-
-
-				}, 10);
-
+					});						
+				},10)
 			},
 
 			hide () {
-				/* 如果是抽屉动 */
-				if (DRAWER_MOVE) {
-					this.transitionDuration(this.duration, this.$refs.drawer);
-					this.translateX(-this.drawerWidth, this.$refs.drawer);
-					/* 内容跟着动 */
-					if (CONTNET_MOVE) {
-						this.linkageElements.forEach(el => {
-							this.transitionDuration(this.duration, el);
-							this.translateX(0, el);
-						});						
-					}
-				} else if (CONTNET_MOVE) {
-					this.linkageElements.forEach(el=>{
-						this.transitionDuration(this.duration, el);
-						this.translateX(0, el);
-						setTimeout(()=>{
-							this.$refs.drawer.style.display = 'none';
-						}, this.duration);
-						
-					});
+				/* drawer 动, cotnent 不动 */
+				if (DRAWER_MOVE && !CONTNET_MOVE) {
+					this.recoverDrawer();			
 				}
-				/* 如果是内容动*/
+				/* drawer 动, cotnent 动 */
+				if (DRAWER_MOVE && CONTNET_MOVE) {
+					this.recoverDrawer();
+					this.recoverContent();
+				}
+				/* drawewr 不动, content 动 */
+				if (!DRAWER_MOVE && CONTNET_MOVE) {
+					this.recoverContent();
+				}	
+				/* 其他操作
+					恢复
+				*/
+				document.body.style.overflow = 'auto';
 				this.linkageElements.forEach(el => {
 					el.removeEventListener('click', this.hide, false);
-					el.removeEventListener('touchmove', this.handler, false);
-				});
+				});	
 			},
+
+			/* 显示 drawer */
+			moveDrawer () {
+				this.transitionDuration(this.duration, this.$refs.drawer);
+				this.translateX(0, this.$refs.drawer);					
+			},
+			moveContent () {
+				this.linkageElements.forEach(el=>{
+					/* fixed bug: fixed 元素在使用 transform 的时候导致不显示, 需要设置一个
+					   z-index 来控制 
+					*/
+					el.style.zIndex = 1;
+					this.transitionDuration(this.duration, el);
+					this.translateX(this.drawerWidth, el);
+				})
+			},
+			/* 隐藏 drawer */
+			recoverDrawer () {
+				this.transitionDuration(this.duration, this.$refs.drawer);
+				this.translateX(-this.drawerWidth, this.$refs.drawer);				
+			},
+			recoverContent () {
+				console.log('shiwo ')
+				this.linkageElements.forEach(el => {
+					this.transitionDuration(this.duration, el);
+					this.translateX(0, el);
+				});					
+			},
+
 			translateX (value,el) {
 				el.style.transform = 'translate3d(' + value + 'px, 0, 0)';
 			},
