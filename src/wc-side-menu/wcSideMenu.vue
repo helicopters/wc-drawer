@@ -1,4 +1,4 @@
-<style lang="less" scoped>
+<style lang="less">
 .wc-drawer-container {
 	/* 这样保证不随着主体内容滚动而滚动 */
 	position: fixed;
@@ -10,6 +10,17 @@
 	-webkit-overflow-scrolling: touch;
 	/* 这样保证层级最高, 不会被页面上的其他元素覆盖*/
 	z-index: 10000;
+}
+.wc-drawer-overlay {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	// background: red;
+	background: red;
+	opacity: 0.2;
+	top: 0;
+	left: 0;
+
 }
 </style>
 <template>
@@ -32,7 +43,7 @@
 			/* 移动模式 */
 			mode: {
 				default () {
-					return ['content'];
+					return ['drawer'];
 				}
 			},
 			/* 渐变出来的时间 */
@@ -47,16 +58,7 @@
 				default: false
 			}
 		},
-		watch: {
-			value (n) {
-				console.log(n)
-				if (n) {
-					this.show();
-				} else {
-					this.hide();
-				}
-			}
-		},
+
 		data () {
 			return {
 				linkageElements: [],
@@ -64,6 +66,18 @@
 				overlay: null
 			}
 		},
+
+		watch: {
+			value (n) {
+				// console.log(n)
+				if (n) {
+					this.show();
+				} else {
+					this.hide();
+				}
+			}
+		},
+		
 		mounted () {
 			/* 
 				先找到所有的需要联动的元素
@@ -91,13 +105,14 @@
 				this.translateX(0, this.$refs.drawer);
 				this.$refs.drawer.style.zIndex = -1;
 			}
-			this.addOverlay();
-			this.overlay = document.querySelector('.overlay');
+			// this.addOverlay();
+			// this.overlay = document.querySelector('.overlay');
 		},
 		methods: {
 
 			/* 开始唤起 drawer */
 			show () {
+				// console.log('??')
 				/*
 					区分不同的模式
 					drawer 动, cotnent 不动
@@ -128,21 +143,44 @@
 					2 点击剩余的内容区域, 可以关闭 drawer
 					3 为 body 加一层 overlay, 要不然主内容里面的链接是可以点击的. 
 				*/
-				this.overlay.style.display = 'block';
+				// this.overlay.style.display = 'block';
 				/* pc 上生效 */
 				document.body.style.overflow = 'hidden';
+
+				/* 其实不设置位置也可以, 反正 drawer 的层级最高*/
+				this.addOverlay();
+
+				/* 禁用 overlay 的 touchmove*/
+
+				this.overlay = document.querySelector('.wc-drawer-overlay')
+
+				this.overlay.addEventListener('touchmove' , e=>{
+					e.preventDefault();
+				}, false);
+
+				/* 支持点击 overlay 可以关闭弹窗*/
+
+				setTimeout(()=>{
+					this.overlay.addEventListener('click', this.hide, false);
+				}, 10);
+				
+
+
+
+
 				/* 
 					点击剩余的内容区域, 可以关闭 drawer 
 					这个转交给 transition 结束来做. 
 					不能转给 transitionend 来做, 因为drawer 不动的时候, 
 					transitionend 不会触发, 导致问题. 
 				*/
-				setTimeout(()=>{
-					this.overlay.addEventListener('click', this.hide, false);
-				},10);
+				// setTimeout(()=>{
+				// 	this.linkageElements.addEventListener('click', this.hide, false);
+				// },10);
 				this.$emit('input', true)
 			},
 			hide () {
+				// console.log(+new Date())
 				/* drawer 动, cotnent 不动 */
 				if (DRAWER_MOVE && !CONTNET_MOVE) {
 					this.recoverDrawer();			
@@ -162,9 +200,15 @@
 				   解绑点击事件
 				*/
 				document.body.style.overflow = 'auto';
-				this.overlay.removeEventListener('click', this.hide, false);
+
+				/* 删除 overlay*/
+				document.body.removeChild(this.overlay);
+
+
+
+				// this.overlay.removeEventListener('click', this.hide, false);
 				this.$emit('input', false);
-				this.overlay.style.display = 'none';
+				// this.overlay.style.display = 'none';
 			},
 			/* 显示 drawer */
 			moveDrawer () {
@@ -195,11 +239,11 @@
 					this.transitionDuration(this.duration, el);
 					if (this.from == 'left') {
 						this.translateX(this.drawerWidth, el);
-						this.translateX(this.drawerWidth, this.overlay);
+						// this.translateX(this.drawerWidth, this.overlay);
 					}
 					if (this.from == 'right') {
 						this.translateX(-this.drawerWidth, el);
-						this.translateX(-this.drawerWidth, this.overlay);
+						// this.translateX(-this.drawerWidth, this.overlay);
 					}
 				})
 			},
@@ -208,7 +252,7 @@
 					/* 恢复之前的样子 */
 					this.transitionDuration(this.duration, el);
 					this.translateX(0, el);
-					this.translateX(0, this.overlay);
+					// this.translateX(0, this.overlay);
 					/* 这个解决一个 bug: 如果只有 content 动的话, 在恢复之后, fixed 元素的 fixed 失效*/
 					el.style.transform = null;
 				});					
@@ -222,16 +266,20 @@
 			/* 添加遮罩层 */
 			addOverlay () {
 				let div = document.createElement('div');
-				div.style.position = 'absolute';
-				div.style.zIndex = 8888;
-				div.style.left = 0;
-				div.style.top = 0;
-				div.style.width = '100%';
-				div.style.height = document.body.clientHeight + 'px'
-				div.style.opacity = 0;
-				div.className = 'overlay'
-				document.body.appendChild(div);	
-				div.style.display = 'none';
+
+				div.className = 'wc-drawer-overlay';
+
+				document.body.appendChild(div);
+				// div.style.position = 'absolute';
+				// div.style.zIndex = 8888;
+				// div.style.left = 0;
+				// div.style.top = 0;
+				// div.style.width = '100%';
+				// div.style.height = document.body.clientHeight + 'px'
+				// div.style.opacity = 0;
+				// div.className = 'overlay'
+				// document.body.appendChild(div);	
+				// div.style.display = 'none';
 			},
 
 			/* 获取在侧边栏出来的时候, 所有需要跟着移动的页面元素 */

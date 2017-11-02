@@ -66,7 +66,8 @@
 }	
 </style>
 <template>
-  <div class="burger-menu" @click.stop="fn" :class="{'menu-on': value}">
+  <!-- 用 touchend 防止延迟 -->
+  <div class="burger-menu" @touchstart.stop="fn" :class="{'menu-on': value}">
     <div class="burger"></div>
   </div>	
 </template>
@@ -81,6 +82,7 @@
 
 		methods: {
 			fn () {
+        console.log(+new Date(),'xxx')
 				// this.$emit('input', !this.value);
         this.$emit('click');
 			}

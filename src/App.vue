@@ -1,4 +1,7 @@
 <style lang="less">
+body {
+  position: relative;
+}
 .content {
   background: white;
   text-align: center;
@@ -29,6 +32,8 @@
 .bugg {
   position: absolute!important;
   top: 20px;
+  // 
+  // left: 10px;
   right: 10px;
 }
 
@@ -80,7 +85,9 @@
       showMe () {
 
         console.log('hello')
-        console.log(this.$refs.side.value, this.show)
+        console.log(+new Date())
+
+        // console.log(this.$refs.side.value, this.show)
 
 
         // this.$refs.side.show();
